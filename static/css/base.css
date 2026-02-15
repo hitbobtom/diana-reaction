@@ -1,0 +1,170 @@
+/*使用此标签防止html代码被转义*/
+/*https://blog.csdn.net/ximaiyao1984/article/details/112393790*/
+xmp {
+    font-family: "JetBrains Mono", Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-weight: normal;
+    line-height: 1.8;
+    text-rendering: optimizeSpeed;
+    word-break: normal;
+    white-space: normal;
+    padding: 1em 1.5rem;
+    border-radius: 4px;
+    display: block;
+    /*background: #f8f8f8;*/
+    border: 1px solid #d9d9d9;
+}
+
+.sectionbody {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+img {
+    width: 100%;
+    height: auto;
+    display: block;
+    /*margin: 0 auto;*/
+    border: 3px solid #000000; /* 设置边框大小，颜色和样式 */
+    border-radius: 10px; /* 设置边框圆角半径 */
+    box-shadow: 2px 2px 5px #888;
+    /* 设置边框阴影，包括水平、垂直、模糊程度和阴影颜色 */
+    margin-top: 20px; /* 设置段前间距 */
+    margin-bottom: 20px; /* 设置段后间距 */
+}
+
+.images3 {
+    width: auto;
+    height: 48px;
+    display: inline;
+    border: 1px solid #000000; /* 设置边框大小，颜色和样式 */
+    border-radius: 5px; /* 设置边框圆角半径 */
+    box-shadow: 2px 2px 5px #888;
+    /* 设置边框阴影，包括水平、垂直、模糊程度和阴影颜色 */
+    /*margin: 0 auto;*/
+    margin-top: 0px; /* 设置段前间距 */
+    margin-bottom: 5px; /* 设置段后间距 */
+    margin-left: 10px; /* 设置段前间距 */
+    margin-right: 10px; /* 设置段后间距 */
+}
+
+/*<div class="images"><img src=""/></div>*/
+.images img {
+    width: 100%;
+    margin: 1.5em 0;
+}
+
+.images0 img {
+    display: inline-block; /* 使img成为内联块级元素，以便应用文本对齐 */
+    width: auto;
+}
+
+.images2 img {
+    display: inline-block; /* 使img成为内联块级元素，以便应用文本对齐 */
+    width: auto;
+    max-height: 870px;
+}
+
+
+.images10 img {
+    /*max-width: 800px;*/
+    border: none;
+    border-top-width: 0px;
+    border-bottom-width: 0px;
+    border-left-width: 0px;
+    border-right-width: 0px;
+    border-top-style: solid;
+    border-bottom-style: solid;
+    border-left-style: solid;
+    border-right-style: solid;
+}
+
+
+table {
+    border: 1px solid #D5E5E8;
+    /*border: 1px solid #808080;*/
+    width: 100%;
+    display: table;
+    border-collapse: separate;
+    box-sizing: border-box;
+    text-indent: initial;
+    unicode-bidi: isolate;
+    border-spacing: 2px;
+    /*background-color: #FFFFFF;*/
+    /*border-color: gray;*/
+    font-size: 18px;
+    line-height: 22px;
+}
+
+fieldset {
+    border: 1px #000000 solid;
+}
+
+fieldset {
+    display: block;
+    margin-inline-start: 2px;
+    margin-inline-end: 2px;
+    padding-block-start: 0.35em;
+    padding-inline-start: 0.75em;
+    padding-inline-end: 0.75em;
+    padding-block-end: 0.625em;
+    min-inline-size: min-content;
+    border-width: 2px;
+    border-style: groove;
+    border-color: rgb(192, 192, 192);
+    border-image: initial;
+    /* HTML文本界面英文无法自动换行的解决办法：https://blog.csdn.net/weixin_64103049/article/details/127960824 */
+    word-break: break-all;
+}
+
+legend {
+    display: block;
+    padding-inline-start: 2px;
+    padding-inline-end: 2px;
+    unicode-bidi: isolate;
+    border-width: initial;
+    border-style: none;
+    border-color: initial;
+    border-image: initial;
+    font-weight: bold;
+}
+
+
+.toc-list-item {
+    width: 100%;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+
+#footer #footer-text {
+    cursor: pointer;
+    /*cursor: url('../cursor/pointer.png'), auto; !* 路径需要替换为你的图片实际路径 *!*/
+}
+
+.ic {
+    display: none;
+}
+
+
+.caption {
+    text-align: center;
+    color: #808080;
+    font-size: 15px;
+    font-family: Open Sans, sans-serif;
+}
+
+
+/*@font-face {*/
+/*    font-family: 'Jura-Medium'; !* 自定义字体名称 *!*/
+/*    src: url('../fonts/Jura-Medium.ttf') format('truetype'), !* 字体文件路径和格式 *!*/
+/*         url('../fonts/Jura-Medium.woff2') format('woff2'); !* 可选：提供多种格式以增加兼容性 *!*/
+/*    font-weight: normal; !* 字体粗细 *!*/
+/*    font-style: normal; !* 字体风格 *!*/
+/*}*/
+
+/*a {*/
+/*    color: #f7923c;*/
+/*    line-height: inherit;*/
+/*    text-decoration: none;*/
+/*    font-family: 'Jura-Medium','LXGW WenKai', sans-serif;*/
+/*}*/

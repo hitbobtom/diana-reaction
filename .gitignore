@@ -1,0 +1,9 @@
+index-01.txt 
+*.bat 
+
+# 忽略html文件夹下的批处理脚本和Python生成器脚本
+html/start_all.bat
+html/timeline_generator.py
+
+# 忽略html目录下所有以video_timeline开头的txt文件
+html/video_timeline*.txt

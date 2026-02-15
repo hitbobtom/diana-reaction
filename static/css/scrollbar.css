@@ -1,0 +1,31 @@
+/* css 更改浏览器默认滚动条样式 */
+/* https://blog.csdn.net/liushuiziyouliu/article/details/86215833 */
+/* https://blog.csdn.net/weixin_42217154/article/details/106239287 */
+
+/*左侧菜单栏滚动条样式*/
+::-webkit-scrollbar {
+    width: 10px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    /*background: rgba(43,70,109,1);*/
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-track-piece { /*内层轨道，滚动条中间部分（位置4）*/
+    border-radius: 2px 2px 0px 0px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #6E8EBA;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #5176AA;
+}
+
+::-webkit-scrollbar-corner {
+    background: #f6f6f6;
+}

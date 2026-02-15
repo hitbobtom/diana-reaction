@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-02-07 伴星任务-安可</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+            transition: all 0.3s ease;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: #1a1a1a;
+            overflow: auto;
+        }
+        .timeline-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 1400px;
+            background-color: #2d2d2d;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.4);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #444;
+        }
+        .page-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #f0f0f0;
+            margin-bottom: 16px;
+        }
+        .header-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .header-subtitle {
+            font-size: 16px;
+            color: #ccc;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .mode-toggle-btn, .guide-toggle-btn {
+            padding: 5px 10px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #f0f0f0;
+            background-color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .mode-toggle-btn:hover, .guide-toggle-btn:hover {
+            background-color: #444;
+        }
+        .mode-toggle-btn svg, .guide-toggle-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        .pixel-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pixel-control label {
+            font-size: 14px;
+            color: #ccc;
+            white-space: nowrap;
+        }
+        .pixel-control select {
+            padding: 5px 8px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #f0f0f0;
+            background-color: #333;
+            cursor: pointer;
+        }
+        .color-tags-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .color-tag-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #ccc;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .color-tag-item:hover {
+            background-color: #444;
+        }
+        .color-tag-item.active {
+            background-color: #555;
+            font-weight: bold;
+        }
+        .color-tag-block {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .color-tag-text {
+            white-space: nowrap;
+        }
+        .timeline-wrapper {
+            position: relative;
+            width: 100%;
+            height: 1383.75px;
+            display: flex;
+            justify-content: center;
+            min-height: 400px;
+        }
+        .timeline-line {
+            position: absolute;
+            width: 3px;
+            background-color: #555;
+            z-index: 1;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 100%;
+        }
+
+        /* ========== 章节指引线 · 最终对齐修正版 ========== */
+        .chapter-guide-group {
+            position: absolute;
+            z-index: 2;
+            pointer-events: auto;
+            transition: all 0.2s ease;
+            left: calc(50% - 160px);
+        }
+        .chapter-guide {
+            position: absolute;
+            left: 0;
+            border-left: 2.5px solid #ef5fa8;
+            width: 0;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+        .chapter-guide-horizontal {
+            position: absolute;
+            height: 2.5px;
+            background-color: #ef5fa8;
+            opacity: 0.8;
+            pointer-events: none;
+            left: 0;
+            width: 60px;
+        }
+        .chapter-guide-group:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        .chapter-guide-group:hover .chapter-guide {
+            opacity: 1;
+            border-left-width: 3px;
+        }
+        .chapter-guide-group:hover .chapter-guide-horizontal {
+            opacity: 1;
+            height: 3px;
+        }
+        .chapter-guide-group.hidden {
+            display: none;
+        }
+        /* 白天模式下章节线颜色 */
+        body.light-mode .chapter-guide {
+            border-left-color: #e04a90;
+        }
+        body.light-mode .chapter-guide-horizontal {
+            background-color: #e04a90;
+        }
+        body.light-mode .chapter-guide-group:hover .chapter-guide {
+            border-left-color: #d03a80;
+        }
+        body.light-mode .chapter-guide-group:hover .chapter-guide-horizontal {
+            background-color: #d03a80;
+        }
+
+        /* ========== 段落范围线（最终修复：纵向连接 + 横线右移） ========== */
+        .paragraph-guide-group {
+            position: absolute;
+            z-index: 1;
+            pointer-events: auto;
+            transition: all 0.2s ease;
+            left: calc(50% - 160px);
+            /* 关键：给分组设置高度，让竖线能撑满 */
+            height: 100%;
+        }
+        /* 段落竖线 - 纵向完整连接 */
+        .paragraph-guide {
+            position: absolute;
+            left: 0;
+            border-left: 2.5px solid #7720A2;
+            width: 0;
+            opacity: 0.7;
+            pointer-events: none;
+            display: block !important;
+            /* 关键：竖线高度100%，纵向完整连接 */
+            top: 0;
+            height: 100% !important;
+        }
+        /* 段落横线 - 左端点进一步右移（调整left值即可） */
+        .paragraph-guide-horizontal {
+            position: absolute;
+            height: 2.5px;
+            background-color: #7720A2;
+            opacity: 0.7;
+            pointer-events: none;
+            display: block !important;
+            left: 30px; /* 核心调整：比之前右移更多，可改35/40px */
+            width: 35px; /* 右端仍对齐章节线（60-30=30，这里35是留余量） */
+        }
+        /* 段落线悬浮放大 */
+        .paragraph-guide-group:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        .paragraph-guide-group:hover .paragraph-guide {
+            opacity: 1;
+            border-left-width: 3px;
+        }
+        .paragraph-guide-group:hover .paragraph-guide-horizontal {
+            opacity: 1;
+            height: 3px;
+        }
+        .paragraph-guide-group.hidden {
+            display: none;
+        }
+        /* 暗黑模式段落线颜色 - 强制使用#f7923c */
+        body.dark-mode .paragraph-guide {
+            border-left-color: #f7923c !important;
+        }
+        body.dark-mode .paragraph-guide-horizontal {
+            background-color: #f7923c !important;
+        }
+        body.dark-mode .paragraph-guide-group:hover .paragraph-guide {
+            border-left-color: #e8822c !important;
+        }
+        body.dark-mode .paragraph-guide-group:hover .paragraph-guide-horizontal {
+            background-color: #e8822c !important;
+        }
+        /* 白天模式段落线颜色 - 恢复原紫色 */
+        body.light-mode .paragraph-guide {
+            border-left-color: #7720A2 !important;
+        }
+        body.light-mode .paragraph-guide-horizontal {
+            background-color: #7720A2 !important;
+        }
+        body.light-mode .paragraph-guide-group:hover .paragraph-guide {
+            border-left-color: #671092 !important;
+        }
+        body.light-mode .paragraph-guide-group:hover .paragraph-guide-horizontal {
+            background-color: #671092 !important;
+        }
+
+        .timeline-item {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            z-index: 5;
+            background: transparent !important;
+            display: block;
+        }
+        .timeline-item.hide {
+            display: none;
+        }
+        .marker-container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            z-index: 20;
+        }
+        .timeline-marker {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid #2d2d2d;
+            box-shadow: 0 0 0 1px transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .timeline-marker.default-color {
+            background-color: #555;
+            box-shadow: 0 0 0 1px #555;
+        }
+        .timeline-marker.hollow {
+            width: 10px;
+            height: 10px;
+            left: 1px;
+            top: 1px;
+            background-color: transparent !important;
+            border-width: 2px;
+            box-shadow: none !important;
+            z-index: 22;
+        }
+        .marker-mask {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #2d2d2d;
+            z-index: 21;
+            display: none;
+        }
+        .timeline-marker.hollow + .marker-mask {
+            display: block;
+            width: 6px;
+            height: 6px;
+            left: 3px;
+            top: 3px;
+        }
+        .timeline-marker.hollow.default-color {
+            border-color: #555;
+        }
+        .timeline-item:hover .marker-container {
+            transform: translate(-50%, -50%) scale(1.5);
+        }
+        .timeline-item:hover .timeline-marker.default-color {
+            box-shadow: 0 0 0 2px #888 !important;
+        }
+        /* 时间戳文本位置 */
+        .marker-time {
+            position: absolute;
+            left: calc(50% - 120px);
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            color: #bbb;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+            text-align: right;
+            width: 100px;
+            transition: all 0.3s ease;
+            z-index: 15;
+        }
+        .marker-title {
+            position: absolute;
+            left: calc(50% + 20px);
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #f0f0f0;
+            white-space: nowrap;
+            max-width: 600px;
+            line-height: 1.4;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 15;
+            text-decoration: none;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            z-index: 9999;
+            pointer-events: none;
+            white-space: pre-wrap;
+            max-width: 350px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: none;
+            line-height: 1.7;
+        }
+        .timeline-item:hover .marker-time {
+            color: #888;
+            font-size: 15px;
+        }
+        .timeline-item:hover .marker-title {
+            font-size: 15px;
+        }
+
+        /* 白天模式 */
+        body.light-mode {
+            background-color: #f5f5f5;
+        }
+        body.light-mode .timeline-container {
+            background-color: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        body.light-mode .page-title {
+            color: #333;
+        }
+        body.light-mode .header-subtitle,
+        body.light-mode .pixel-control label {
+            color: #666;
+        }
+        body.light-mode .page-header {
+            border-bottom-color: #eee;
+        }
+        body.light-mode .mode-toggle-btn,
+        body.light-mode .guide-toggle-btn,
+        body.light-mode .pixel-control select {
+            background-color: white;
+            border-color: #ddd;
+            color: #333;
+        }
+        body.light-mode .color-tag-item {
+            color: #333;
+        }
+        body.light-mode .color-tag-item:hover {
+            background-color: #eee;
+        }
+        body.light-mode .color-tag-item.active {
+            background-color: #ddd;
+        }
+        body.light-mode .timeline-line {
+            background-color: #ddd;
+        }
+        body.light-mode .timeline-marker {
+            border-color: white;
+        }
+        body.light-mode .timeline-marker.default-color {
+            background-color: #ddd;
+            box-shadow: 0 0 0 1px #ddd;
+        }
+        body.light-mode .timeline-marker.hollow.default-color {
+            border-color: #ddd;
+        }
+        body.light-mode .marker-mask {
+            background-color: white;
+        }
+        body.light-mode .marker-time {
+            color: #999;
+        }
+        body.light-mode .marker-title {
+            color: #333;
+        }
+        body.light-mode .tooltip {
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border: 1px solid #eee;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .timeline-container {
+                padding: 20px;
+                width: 95%;
+            }
+            .page-title {
+                font-size: 24px;
+            }
+            .marker-time {
+                width: 80px;
+                font-size: 12px;
+                left: calc(50% - 100px);
+            }
+            .marker-title {
+                max-width: 250px;
+                font-size: 12px;
+                left: calc(50% + 15px);
+            }
+            .tooltip {
+                max-width: 200px;
+                font-size: 11px;
+            }
+            /* 移动端章节线适配 */
+            .chapter-guide-horizontal {
+                width: 40px;
+            }
+            .chapter-guide-group {
+                left: calc(50% - 100px);
+            }
+            /* 移动端段落线适配 */
+            .paragraph-guide-horizontal {
+                width: 25px;
+                left: 20px; /* 移动端也同步右移 */
+            }
+            .paragraph-guide-group {
+                left: calc(50% - 100px);
+            }
+        }
+
+        /* 右键菜单 */
+        .context-menu {
+            position: absolute;
+            background-color: #333;
+            color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10000;
+            display: none;
+            min-width: 140px;
+            overflow: hidden;
+            font-size: 14px;
+        }
+        .context-menu-item {
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+        .context-menu-item:hover {
+            background-color: #555;
+        }
+        body.light-mode .context-menu {
+            background-color: #fff;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        body.light-mode .context-menu-item:hover {
+            background-color: #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="timeline-container">
+        <div class="page-header">
+            <h1 class="page-title">2026-02-07 伴星任务-安可</h1>
+            <div class="header-toolbar">
+                <button class="mode-toggle-btn" id="modeToggleBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <span id="modeText">白天模式</span>
+                </button>
+                <button class="guide-toggle-btn" id="guideToggleBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                    <span id="guideText">显示章节线</span>
+                </button>
+                <div class="pixel-control">
+                    <label for="pixelPerMinute">像素/分钟：</label>
+                    <select id="pixelPerMinute"><option value="0.5" >0.5</option><option value="1" >1</option><option value="2" >2</option><option value="3" >3</option><option value="4" >4</option><option value="5" >5</option><option value="7.5" >7.5</option><option value="10" >10</option><option value="12.5" selected>12.5</option><option value="15" >15</option><option value="20" >20</option><option value="30" >30</option><option value="40" >40</option><option value="50" >50</option><option value="60" >60</option><option value="90" >90</option><option value="120" >120</option></select>
+                </div>
+                <div class="color-tags-container">
+                    <div class="color-tag-item" data-color="#ef5fa8" data-original-color="#ef5fa8" style="cursor: pointer;">
+            <div class="color-tag-block" style="background-color: #ef5fa8;"></div>
+            <span class="color-tag-text">1.章节标题</span>
+        </div>
+        
+        <div class="color-tag-item" data-color="#7720A2" data-original-color="#7720A2" style="cursor: pointer;">
+            <div class="color-tag-block" style="background-color: #7720A2;"></div>
+            <span class="color-tag-text">2.段落标题</span>
+        </div>
+        
+        <div class="color-tag-item" data-color="red" data-original-color="red" style="cursor: pointer;">
+            <div class="color-tag-block" style="background-color: red;"></div>
+            <span class="color-tag-text">标题1</span>
+        </div>
+        
+        <div class="color-tag-item" data-color="#0000ff" data-original-color="#0000ff" style="cursor: pointer;">
+            <div class="color-tag-block" style="background-color: #0000ff;"></div>
+            <span class="color-tag-text">音声碎片</span>
+        </div>
+        
+    <div class="color-tag-item" data-color="all" data-original-color="#333" style="cursor: pointer;">
+        <div class="color-tag-block" style="background-color: #333;"></div>
+        <span class="color-tag-text">显示全部</span>
+    </div>
+                </div>
+            </div>
+            <div class="header-subtitle">视频时间轴导航</div>
+        </div>
+        <div class="timeline-wrapper" id="timeline-wrapper">
+            <div class="timeline-line" id="timeline-line"></div>
+            <div class="timeline-blur"></div>
+        </div>
+    </div>
+    <div class="tooltip" id="customTooltip"></div>
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" id="copyText">复制标题文本</div>
+        <div class="context-menu-item" id="copyLink">复制视频链接</div>
+        <div class="context-menu-item" id="copyTime">复制时间戳</div>
+    </div>
+
+    <script>
+        const timelineData = [{"time": "00:00:00", "display_time": "00:00", "seconds": 0, "title": "开始", "original_title": "开始", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=0", "title_color": "#333"}, {"time": "00:09:27", "display_time": "09:27", "seconds": 567, "title": "开始", "original_title": "开始", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=567", "title_color": "#333"}, {"time": "00:10:42", "display_time": "10:42", "seconds": 642, "title": "安可PV - 「咩哇！！！」", "original_title": "安可PV - 「咩哇！！！」", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=642", "title_color": "#333"}, {"time": "00:15:26", "display_time": "15:26", "seconds": 926, "title": "<span style=\"color: #ef5fa8; font-weight: bold;\">安可</span> - 「小小羊咩大冒险」", "original_title": "安可 - 「小小羊咩大冒险」", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=926", "title_color": "#ef5fa8"}, {"time": "00:19:41", "display_time": "19:41", "seconds": 1181, "title": "<span style=\"color: #7720A2; font-weight: bold;\">开始冒险（前往羊咩王国）</span>", "original_title": "开始冒险（前往羊咩王国）", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=1181", "title_color": "#7720a2"}, {"time": "00:23:43", "display_time": "23:43", "seconds": 1423, "title": "三样宝物", "original_title": "三样宝物", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=1423", "title_color": "#333"}, {"time": "00:23:50", "display_time": "23:50", "seconds": 1430, "title": "<span style=\"color: #0000ff;\">黑咩白咩都是安可在说话吗？那很萌啦😋</span>", "original_title": "黑咩白咩都是安可在说话吗？那很萌啦😋", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=1430", "title_color": "#0000ff"}, {"time": "00:25:37", "display_time": "25:37", "seconds": 1537, "title": "<span style=\"color: #7720A2; font-weight: bold;\">回到现实</span>", "original_title": "回到现实", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=1537", "title_color": "#7720a2"}, {"time": "00:26:04", "display_time": "26:04", "seconds": 1564, "title": "<span style=\"color: #0000ff;\">（安可：但也不是谁都能进去，有的人觉得这...</span>", "original_title": "（安可：但也不是谁都能进去，有的人觉得这些故事是假的，它们并不存在，羊咩王国也不欢迎他们。）嗯...（超用力）", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=1564", "title_color": "#0000ff"}, {"time": "00:27:07", "display_time": "27:07", "seconds": 1627, "title": "<span style=\"color: #0000ff;\">（然姨 可爱捏咩~）（然然又来熬糖糖了）</span>", "original_title": "（然姨 可爱捏咩~）（然然又来熬糖糖了）", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=1627", "title_color": "#0000ff"}, {"time": "00:27:45", "display_time": "27:45", "seconds": 1665, "title": "<span style=\"color: #7720A2; font-weight: bold;\">小女孩小盈</span>", "original_title": "小女孩小盈", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=1665", "title_color": "#7720a2"}, {"time": "00:28:33", "display_time": "28:33", "seconds": 1713, "title": "<span style=\"color: #0000ff;\">我？直接看不就知道我比安可高了吗，还问我...</span>", "original_title": "我？直接看不就知道我比安可高了吗，还问我们谁高...我比她高半个脑袋", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=1713", "title_color": "#0000ff"}, {"time": "00:34:49", "display_time": "34:49", "seconds": 2089, "title": "冒险小队出发", "original_title": "冒险小队出发", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=2089", "title_color": "#333"}, {"time": "00:38:56", "display_time": "38:56", "seconds": 2336, "title": "勇气之宝剑（起飞逃课）", "original_title": "勇气之宝剑（起飞逃课）", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=2336", "title_color": "#333"}, {"time": "00:43:02", "display_time": "43:02", "seconds": 2582, "title": "信念之盾牌", "original_title": "信念之盾牌", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=2582", "title_color": "#333"}, {"time": "00:46:52", "display_time": "46:52", "seconds": 2812, "title": "<span style=\"color: #0000ff;\">哎呦😊还要仰头看我</span>", "original_title": "哎呦😊还要仰头看我", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=2812", "title_color": "#0000ff"}, {"time": "00:49:33", "display_time": "49:33", "seconds": 2973, "title": "<span style=\"color: #7720A2; font-weight: bold;\">希望之花冠</span>", "original_title": "希望之花冠", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=2973", "title_color": "#7720a2"}, {"time": "00:53:49", "display_time": "53:49", "seconds": 3229, "title": "<span style=\"color: #7720A2; font-weight: bold;\">与安可聊天</span>", "original_title": "与安可聊天", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=3229", "title_color": "#7720a2"}, {"time": "00:55:43", "display_time": "55:43", "seconds": 3343, "title": "<span style=\"color: #0000ff;\">（安可：要不要猜猜看，为什么安可会知道？...</span>", "original_title": "（安可：要不要猜猜看，为什么安可会知道？）我不想猜宝宝...你的眼神已经告诉了", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=3343", "title_color": "#0000ff"}, {"time": "00:56:33", "display_time": "56:33", "seconds": 3393, "title": "安可的故事", "original_title": "安可的故事", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=3393", "title_color": "#333"}, {"time": "00:59:10", "display_time": "59:10", "seconds": 3550, "title": "安可故事的后续", "original_title": "安可故事的后续", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=3550", "title_color": "#333"}, {"time": "01:01:15", "display_time": "01:01:15", "seconds": 3675, "title": "<span style=\"color: #0000ff;\">所以...所以安可一直一直给小朋友讲故事...</span>", "original_title": "所以...所以安可一直一直给小朋友讲故事，就是害怕黑咩白咩会...会消失吗，它们就是妈妈，它们在妈妈就在...呜呜~安可", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=3675", "title_color": "#0000ff"}, {"time": "01:04:38", "display_time": "01:04:38", "seconds": 3878, "title": "<span style=\"color: #0000ff;\">会的，安可...你已经变成勇士了，我也想...</span>", "original_title": "会的，安可...你已经变成勇士了，我也想看安可完满的故事", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=3878", "title_color": "#0000ff"}, {"time": "01:04:54", "display_time": "01:04:54", "seconds": 3894, "title": "<span style=\"color: #7720A2; font-weight: bold;\">「不只是小盈的故事../还有安可的故事。...</span>", "original_title": "「不只是小盈的故事../还有安可的故事。」", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=3894", "title_color": "#7720a2"}, {"time": "01:07:45", "display_time": "01:07:45", "seconds": 4065, "title": "维里奈", "original_title": "维里奈", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=4065", "title_color": "#333"}, {"time": "01:13:07", "display_time": "01:13:07", "seconds": 4387, "title": "寻找代表内心感受的花（云露、清芬草x2）", "original_title": "寻找代表内心感受的花（云露、清芬草x2）", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=4387", "title_color": "#333"}, {"time": "01:15:24", "display_time": "01:15:24", "seconds": 4524, "title": "前往约定的花田", "original_title": "前往约定的花田", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=4524", "title_color": "#333"}, {"time": "01:18:17", "display_time": "01:18:17", "seconds": 4697, "title": "希望之花冠", "original_title": "希望之花冠", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=4697", "title_color": "#333"}, {"time": "01:21:12", "display_time": "01:21:12", "seconds": 4872, "title": "<span style=\"color: #7720A2; font-weight: bold;\">进入羊咩王国</span>", "original_title": "进入羊咩王国", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=4872", "title_color": "#7720a2"}, {"time": "01:31:53", "display_time": "01:31:53", "seconds": 5513, "title": "「为羊咩故事画上句号吧」", "original_title": "「为羊咩故事画上句号吧」", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=5513", "title_color": "#333"}, {"time": "01:32:08", "display_time": "01:32:08", "seconds": 5528, "title": "<span style=\"color: #0000ff;\">能坐吗？不能</span>", "original_title": "能坐吗？不能", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=5528", "title_color": "#0000ff"}, {"time": "01:33:29", "display_time": "01:33:29", "seconds": 5609, "title": "※动画", "original_title": "※动画", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=5609", "title_color": "#333"}, {"time": "01:35:04", "display_time": "01:35:04", "seconds": 5704, "title": "<span style=\"color: #0000ff;\">哦（哭腔）安可（吸溜～）她见到了，她见到...</span>", "original_title": "哦（哭腔）安可（吸溜～）她见到了，她见到了", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=5704", "title_color": "#0000ff"}, {"time": "01:35:40", "display_time": "01:35:40", "seconds": 5740, "title": "<span style=\"color: #7720A2; font-weight: bold;\">拍照</span>", "original_title": "拍照", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=5740", "title_color": "#7720a2"}, {"time": "01:37:31", "display_time": "01:37:31", "seconds": 5851, "title": "<span style=\"color: #0000ff;\">萌萌的</span>", "original_title": "萌萌的", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=5851", "title_color": "#0000ff"}, {"time": "01:38:04", "display_time": "01:38:04", "seconds": 5884, "title": "羊咩勇士寻找宝藏故事的结局", "original_title": "羊咩勇士寻找宝藏故事的结局", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=5884", "title_color": "#333"}, {"time": "01:40:15", "display_time": "01:40:15", "seconds": 6015, "title": "CG", "original_title": "CG", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=6015", "title_color": "#333"}, {"time": "01:42:49", "display_time": "01:42:49", "seconds": 6169, "title": "<span style=\"color: #0000ff;\">（吸溜～）哎~没想到安可宝宝你还要写作业</span>", "original_title": "（吸溜～）哎~没想到安可宝宝你还要写作业", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=6169", "title_color": "#0000ff"}, {"time": "01:43:42", "display_time": "01:43:42", "seconds": 6222, "title": "<span style=\"color: #ef5fa8; font-weight: bold;\">结束</span>", "original_title": "结束", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=6222", "title_color": "#ef5fa8"}, {"time": "01:44:15", "display_time": "01:44:15", "seconds": 6255, "title": "<span style=\"color: #0000ff;\">这小孩真是的，委屈也不跟大人分享，也不跟...</span>", "original_title": "这小孩真是的，委屈也不跟大人分享，也不跟大人讲...这小孩，就自己偷偷憋着...小孩？别说小孩，我在这里可是靠谱的大人", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=6255", "title_color": "#0000ff"}, {"time": "01:45:38", "display_time": "01:45:38", "seconds": 6338, "title": "<span style=\"color: #0000ff;\">（吸溜～）其实偷偷吃面条来着，刚刚吃了一...</span>", "original_title": "（吸溜～）其实偷偷吃面条来着，刚刚吃了一碗豚骨拉面...对，这是我吸溜面条的声音...抱抱，我们的故事也要慢慢讲", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=6338", "title_color": "#0000ff"}, {"time": "01:46:18", "display_time": "01:46:18", "seconds": 6378, "title": "<span style=\"color: #0000ff;\">明天中午12点我们打1.3，我们主线1....</span>", "original_title": "明天中午12点我们打1.3，我们主线1.3啊...我提前说你们心里想说的话...原来是1.3啊，我还以为是3.1呢", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=6378", "title_color": "#0000ff"}, {"time": "01:50:42", "display_time": "01:50:42", "seconds": 6642, "title": "结束", "original_title": "结束", "link": "https://www.bilibili.com/video/BV1xpFxzYE7h/?p=1&t=6642", "title_color": "#333"}];
+        const maxSeconds = 6642;
+        const defaultPixelPerMinute = 12.5;
+        const blueFilterPixelPerMinute = 20.0;
+        const timelineWrapper = document.getElementById('timeline-wrapper');
+        const timelineLine = document.getElementById('timeline-line');
+        const pixelSelect = document.getElementById('pixelPerMinute');
+        const modeToggleBtn = document.getElementById('modeToggleBtn');
+        const modeText = document.getElementById('modeText');
+        const guideToggleBtn = document.getElementById('guideToggleBtn');
+        const guideText = document.getElementById('guideText');
+        const body = document.body;
+        const colorTagItems = document.querySelectorAll('.color-tag-item');
+        const customTooltip = document.getElementById('customTooltip');
+        const contextMenu = document.getElementById('contextMenu');
+        let currentContextData = null;
+        const TARGET_PINK = "#ef5fa8";
+        const PARAGRAPH_PURPLE = "#7720A2";
+        const PARAGRAPH_INVERT_COLOR = "#f7923c"; // 段落线暗黑模式反色
+        const HIDE_BLUE = "#0000ff";
+        const DEFAULT_MARKER_COLOR = "#555";
+        const DEFAULT_TEXT_COLOR = "#333";
+        const NIGHT_MODE_INVERT_COLORS = {
+            "#7720a2": PARAGRAPH_INVERT_COLOR,
+            "#0000ff": "#ffff00"
+        };
+        let activeFilterColor = "all";
+        let pixelValueState = {
+            'all': defaultPixelPerMinute,
+            '#ef5fa8': defaultPixelPerMinute,
+            'red': defaultPixelPerMinute,
+            '#7720A2': defaultPixelPerMinute,
+            '#0000ff': blueFilterPixelPerMinute
+        };
+        let guideLineVisible = true;
+
+        body.classList.add('dark-mode');
+        modeText.textContent = '白天模式';
+        updateColorTagStyles(true);
+
+        function updateColorTagStyles(isDarkMode) {
+            colorTagItems.forEach(item => {
+                const originalColor = item.getAttribute('data-original-color').toLowerCase();
+                const colorBlock = item.querySelector('.color-tag-block');
+                if (isDarkMode) {
+                    const invertColor = NIGHT_MODE_INVERT_COLORS[originalColor] || originalColor;
+                    colorBlock.style.backgroundColor = invertColor;
+                } else {
+                    colorBlock.style.backgroundColor = originalColor;
+                }
+            });
+        }
+
+        modeToggleBtn.addEventListener('click', () => {
+            const isDarkNow = body.classList.contains('dark-mode');
+            if (isDarkNow) {
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
+                modeText.textContent = '夜间模式';
+                updateColorTagStyles(false);
+            } else {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                modeText.textContent = '白天模式';
+                updateColorTagStyles(true);
+            }
+            renderTimeline(getCurrentPixelValue());
+        });
+
+        // 章节线/段落线显示/隐藏切换
+        guideToggleBtn.addEventListener('click', () => {
+            guideLineVisible = !guideLineVisible;
+            guideText.textContent = guideLineVisible ? '隐藏章节线' : '显示章节线';
+            document.querySelectorAll('.chapter-guide-group, .paragraph-guide-group').forEach(el => {
+                el.classList.toggle('hidden', !guideLineVisible);
+            });
+        });
+
+        colorTagItems.forEach(item => {
+            item.addEventListener('click', () => {
+                colorTagItems.forEach(ct => ct.classList.remove('active'));
+                item.classList.add('active');
+                pixelValueState[activeFilterColor] = parseFloat(pixelSelect.value);
+                activeFilterColor = item.getAttribute('data-color');
+                pixelSelect.value = pixelValueState[activeFilterColor];
+        
+                // ========== 核心逻辑：切换标签时自动控制章节线 ==========
+                if (activeFilterColor === HIDE_BLUE) {
+                    // 切换到「音声碎片」：关闭章节线
+                    guideLineVisible = false;
+                    guideText.textContent = '显示章节线';
+                    document.querySelectorAll('.chapter-guide-group, .paragraph-guide-group').forEach(el => {
+                        el.classList.add('hidden');
+                    });
+                } else {
+                    // 切换到其他所有标签：默认显示章节线
+                    guideLineVisible = true;
+                    guideText.textContent = '隐藏章节线';
+                    document.querySelectorAll('.chapter-guide-group, .paragraph-guide-group').forEach(el => {
+                        el.classList.remove('hidden');
+                    });
+                }
+        
+                renderTimeline(getCurrentPixelValue());
+            });
+        });
+
+        document.querySelector('.color-tag-item[data-color="all"]').classList.add('active');
+
+        function getCurrentPixelValue() {
+            return parseFloat(pixelSelect.value);
+        }
+
+        function getFinalNodeColor(originalColor) {
+            const isDarkMode = body.classList.contains('dark-mode');
+            const lowerColor = originalColor.toLowerCase();
+            if (isDarkMode && NIGHT_MODE_INVERT_COLORS[lowerColor]) {
+                return NIGHT_MODE_INVERT_COLORS[lowerColor];
+            }
+            return originalColor;
+        }
+
+        function handleTooltip(event, text, isBlueNode) {
+            if (!text) {
+                customTooltip.style.display = 'none';
+                return;
+            }
+            if (isBlueNode || text.length > 20) {
+                customTooltip.textContent = text;
+                customTooltip.style.display = 'block';
+                const mouseX = event.clientX + 10;
+                const mouseY = event.clientY + 10;
+                customTooltip.style.left = mouseX + 'px';
+                customTooltip.style.top = mouseY + 'px';
+                const tooltipRect = customTooltip.getBoundingClientRect();
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                if (tooltipRect.right > windowWidth) {
+                    customTooltip.style.left = (event.clientX - tooltipRect.width - 10) + 'px';
+                }
+                if (tooltipRect.bottom > windowHeight) {
+                    customTooltip.style.top = (event.clientY - tooltipRect.height - 10) + 'px';
+                }
+            } else {
+                customTooltip.style.display = 'none';
+            }
+        }
+
+        function closeContextMenu() {
+            contextMenu.style.display = 'none';
+            currentContextData = null;
+        }
+
+        function copyToClipboard(text) {
+            if (!text) {
+                customTooltip.textContent = '无复制内容';
+                customTooltip.style.display = 'block';
+                setTimeout(() => { customTooltip.style.display = 'none'; }, 1000);
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                const old = customTooltip.textContent;
+                customTooltip.textContent = '复制成功！';
+                customTooltip.style.display = 'block';
+                setTimeout(() => { 
+                    customTooltip.textContent = old;
+                    customTooltip.style.display = old ? 'block' : 'none';
+                }, 1000);
+            }).catch(err => {
+                customTooltip.textContent = '复制失败';
+                customTooltip.style.display = 'block';
+                setTimeout(() => { customTooltip.style.display = 'none'; }, 1000);
+            });
+        }
+
+        document.addEventListener('contextmenu', (e) => {
+            const timelineItem = e.target.closest('.timeline-item');
+            if (!timelineItem) return;
+            e.preventDefault();
+            const index = parseInt(timelineItem.dataset.index);
+            currentContextData = timelineData[index];
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = e.clientX + 'px';
+            contextMenu.style.top = e.clientY + 'px';
+            const r = contextMenu.getBoundingClientRect();
+            if (r.right > window.innerWidth) contextMenu.style.left = e.clientX - r.width + 'px';
+            if (r.bottom > window.innerHeight) contextMenu.style.top = e.clientY - r.height + 'px';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.context-menu') && !e.target.closest('.timeline-item')) {
+                closeContextMenu();
+                customTooltip.style.display = 'none';
+            }
+        });
+
+        document.getElementById('copyText').addEventListener('click', () => {
+            if (currentContextData) { copyToClipboard(currentContextData.original_title); closeContextMenu(); }
+        });
+        document.getElementById('copyLink').addEventListener('click', () => {
+            if (currentContextData) { copyToClipboard(currentContextData.link); closeContextMenu(); }
+        });
+        document.getElementById('copyTime').addEventListener('click', () => {
+            if (currentContextData) {
+                let t = currentContextData.time;
+                if (t.startsWith('00:')) t = t.substring(3);
+                copyToClipboard(t);
+                closeContextMenu();
+            }
+        });
+
+        // ========== 核心：绘制章节线和段落线（最终修复：段落竖线精准连接左端点） ==========
+        function renderChapterAndParagraphGuides(pixelPerMinute) {
+            // 清空原有所有指引线
+            document.querySelectorAll('.chapter-guide-group, .paragraph-guide-group').forEach(e => e.remove());
+        
+            // 1. 筛选所有粉色章节点并排序
+            const pinkNodes = timelineData.filter(item => 
+                item.title_color.toLowerCase() === TARGET_PINK.toLowerCase()
+            ).sort((a,b) => a.seconds - b.seconds);
+        
+            // 2. 遍历每个章节区间（只在粉色节点之间画，不画到最后视频末尾）
+            for (let ch = 0; ch < pinkNodes.length; ch++) {
+                const chapterStart = pinkNodes[ch];
+                const chapterEnd = pinkNodes[ch + 1]; 
+        
+                // 如果没有下一个粉色节点，就不画这一段章节线
+                if (!chapterEnd) continue;
+        
+                // 2.1 绘制当前章节的章节线
+                const y1Chapter = (chapterStart.seconds / 60) * pixelPerMinute;
+                const y2Chapter = (chapterEnd.seconds / 60) * pixelPerMinute;
+        
+                const chapterGroup = document.createElement('div');
+                chapterGroup.className = "chapter-guide-group";
+                if (!guideLineVisible) chapterGroup.classList.add('hidden');
+        
+                // 章节线顶部横线
+                const chH1 = document.createElement('div');
+                chH1.className = "chapter-guide-horizontal";
+                chH1.style.top = "0px";
+                chapterGroup.appendChild(chH1);
+        
+                // 章节线底部横线
+                const chH2 = document.createElement('div');
+                chH2.className = "chapter-guide-horizontal";
+                chH2.style.top = (y2Chapter - y1Chapter) + "px";
+                chapterGroup.appendChild(chH2);
+        
+                // 章节线竖线
+                const chVert = document.createElement('div');
+                chVert.className = "chapter-guide";
+                chVert.style.top = "0px";
+                chVert.style.height = (y2Chapter - y1Chapter) + "px";
+                chapterGroup.appendChild(chVert);
+        
+                chapterGroup.style.top = y1Chapter + "px";
+                timelineWrapper.appendChild(chapterGroup);
+        
+                // 2.2 段落线：只在当前章节内，奇数连偶数，不跨章节
+                const paraInChapter = timelineData.filter(item => {
+                    const isPurple = item.title_color.toLowerCase() === PARAGRAPH_PURPLE.toLowerCase();
+                    if (!isPurple) return false;
+                    return item.seconds >= chapterStart.seconds && item.seconds <= chapterEnd.seconds;
+                }).sort((a,b) => a.seconds - b.seconds);
+        
+                // 奇数连偶数：0→1，2→3，4→5... 每对单独画一条竖线
+                for (let i = 0; i < paraInChapter.length - 1; i += 2) {
+                    const p1 = paraInChapter[i];
+                    const p2 = paraInChapter[i + 1];
+        
+                    const y1 = (p1.seconds / 60) * pixelPerMinute;
+                    const y2 = (p2.seconds / 60) * pixelPerMinute;
+                    const h = y2 - y1;
+        
+                    const paraGroup = document.createElement('div');
+                    paraGroup.className = "paragraph-guide-group";
+                    if (!guideLineVisible) paraGroup.classList.add('hidden');
+                    paraGroup.style.position = "absolute"; // 确保定位正确
+                    paraGroup.style.top = y1 + "px";
+                    paraGroup.style.left = "calc(50% - 160px)"; // 和章节线对齐
+                    paraGroup.style.height = h + "px"; // 分组高度=两个段落点的纵向间距
+        
+                    // 段落顶部横线（对应第一个段落点）
+                    const pH1 = document.createElement('div');
+                    pH1.className = "paragraph-guide-horizontal";
+                    pH1.style.position = "absolute";
+                    pH1.style.top = "0px"; // 对齐第一个段落点
+                    pH1.style.left = "30px"; // 和你原有逻辑一致的右移距离
+                    pH1.style.width = "35px";
+                    paraGroup.appendChild(pH1);
+        
+                    // 段落底部横线（对应第二个段落点）
+                    const pH2 = document.createElement('div');
+                    pH2.className = "paragraph-guide-horizontal";
+                    pH2.style.position = "absolute";
+                    pH2.style.bottom = "0px"; // 对齐第二个段落点
+                    pH2.style.left = "30px"; // 和顶部横线左端点对齐
+                    pH2.style.width = "35px";
+                    paraGroup.appendChild(pH2);
+        
+                    // 段落竖线（核心修复：精准连接两个左端点）
+                    const pVert = document.createElement('div');
+                    pVert.className = "paragraph-guide";
+                    pVert.style.position = "absolute";
+                    pVert.style.left = "30px"; // 和横线左端点完全对齐
+                    pVert.style.top = "0px"; // 从第一个段落点顶部开始
+                    pVert.style.height = h + "px"; // 高度=两个段落点的纵向间距（精准连接）
+                    pVert.style.borderLeft = "2.5px solid #7720A2"; // 强制指定样式，避免继承问题
+                    paraGroup.appendChild(pVert);
+        
+                    timelineWrapper.appendChild(paraGroup);
+                }
+            }
+        }
+
+        function renderTimeline(pixelPerMinute) {
+            // 清空现有节点
+            document.querySelectorAll('.timeline-item').forEach(e => e.remove());
+
+            // 排序数据
+            const sortedData = [...timelineData].sort((a,b)=>a.seconds-b.seconds);
+            const total = sortedData.length;
+            const first = 0;
+            const last = total-1;
+            const lastNode = sortedData[last];
+            const lastPos = (lastNode.seconds/60)*pixelPerMinute;
+            const minH = 400;
+
+            // 设置容器和主线高度
+            timelineWrapper.style.height = Math.max(lastPos, minH)+"px";
+            timelineLine.style.height = lastPos+"px";
+
+            // 渲染时间节点
+            sortedData.forEach((item,index)=>{
+                const pos = (item.seconds/60)*pixelPerMinute;
+                const el = document.createElement('div');
+                el.className = 'timeline-item';
+                el.style.top = pos+"px";
+                el.dataset.color = item.title_color;
+                el.dataset.index = index;
+
+                // 显示/隐藏逻辑
+                const isFirst = index===first;
+                const isLast = index===last;
+                if(isFirst || isLast){
+                    el.classList.remove('hide');
+                }else{
+                    const isBlue = item.title_color.toLowerCase()===HIDE_BLUE.toLowerCase();
+                    const isPink = item.title_color.toLowerCase()===TARGET_PINK.toLowerCase();
+                    const isTarget = item.title_color.toLowerCase()===activeFilterColor?.toLowerCase();
+
+                    if(activeFilterColor==="all"){
+                        el.classList.toggle('hide', isBlue);
+                    }else if(activeFilterColor===HIDE_BLUE){
+                        el.classList.toggle('hide', !isBlue);
+                    }else{
+                        el.classList.toggle('hide', !(isTarget||isPink));
+                    }
+                }
+
+                // 创建圆点容器
+                const markerContainer = document.createElement('div');
+                markerContainer.className = 'marker-container';
+
+                // 创建圆点
+                const marker = document.createElement('a');
+                marker.href = item.link;
+                marker.target = '_blank';
+                marker.className = 'timeline-marker';
+
+                // 创建遮罩层
+                const mask = document.createElement('div');
+                mask.className = 'marker-mask';
+
+                // 判断是否为默认颜色
+                const isDefault = item.title_color.toLowerCase()===DEFAULT_TEXT_COLOR.toLowerCase();
+
+                // 设置圆点样式
+                if(isDefault){
+                    marker.classList.add('default-color');
+                }else{
+                    const c = getFinalNodeColor(item.title_color);
+                    marker.style.backgroundColor = c;
+                    marker.style.boxShadow = `0 0 0 1px ${c}`;
+                }
+
+                // 空心圆点逻辑
+                if(!isFirst && !isLast && item.title_color.toLowerCase()!==TARGET_PINK.toLowerCase()){
+                    marker.classList.add('hollow');
+                    if(!isDefault){
+                        const c = getFinalNodeColor(item.title_color);
+                        marker.style.borderColor = c;
+                    }
+                }
+
+                // 组装圆点容器
+                markerContainer.appendChild(marker);
+                markerContainer.appendChild(mask);
+
+                // 创建时间文本
+                const time = document.createElement('div');
+                time.className = 'marker-time';
+                time.textContent = item.display_time;
+                time.onclick = ()=>window.open(item.link,'_blank');
+
+                // 创建标题文本
+                const title = document.createElement('div');
+                title.className = 'marker-title';
+                let html = item.title;
+
+                // 夜间模式颜色反色
+                if(body.classList.contains('dark-mode')){
+                    html = html.replace(/#7720A2/gi,NIGHT_MODE_INVERT_COLORS["#7720a2"]);
+                    html = html.replace(/#0000FF/gi,NIGHT_MODE_INVERT_COLORS["#0000ff"]);
+                }
+                title.innerHTML = html;
+                title.onclick = ()=>window.open(item.link,'_blank');
+
+                // 悬浮提示逻辑
+                const isBlueNode = item.title_color.toLowerCase()===HIDE_BLUE.toLowerCase();
+                title.addEventListener('mousemove',e=>handleTooltip(e,item.original_title,isBlueNode));
+                title.addEventListener('mouseleave',()=>customTooltip.style.display='none');
+                marker.addEventListener('mousemove',e=>handleTooltip(e,item.original_title,isBlueNode));
+                marker.addEventListener('mouseleave',()=>customTooltip.style.display='none');
+
+                // 组装节点
+                el.append(markerContainer,time,title);
+                timelineWrapper.insertBefore(el,timelineWrapper.querySelector('.timeline-blur'));
+            });
+
+            // 绘制章节线和段落线
+            renderChapterAndParagraphGuides(pixelPerMinute);
+        }
+
+        // 初始渲染
+        renderTimeline(defaultPixelPerMinute);
+
+        // 像素值变化时重新渲染
+        pixelSelect.addEventListener('change',()=>{
+            pixelValueState[activeFilterColor] = parseFloat(pixelSelect.value);
+            renderTimeline(getCurrentPixelValue());
+        });
+    </script>
+</body>
+</html>
